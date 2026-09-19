@@ -159,8 +159,8 @@ The application currently communicates with Ollama locally.
 Clone the repository:
 
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/Dhananjay-52/CodeFreaks.git
+cd CodeFreaks
 ```
 
 ### Install frontend dependencies
@@ -530,3 +530,4 @@ This project is currently a prototype. Add the project's intended license here b
 **Project status: Active Prototype**
 
 The core local AI workbench foundation is operational. The next major development stage is the integration of the **multi-model AI Router, document/RAG pipeline, LangGraph agent, tools, and sandbox execution**.
+ 
