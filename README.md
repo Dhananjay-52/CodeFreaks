@@ -1,203 +1,753 @@
 # Sovereign Autonomous AI Workbench
 
-A local-first AI workbench designed to run AI models, conversations, document intelligence, retrieval, agents, and tools on local infrastructure.
+A local-first AI workbench designed to run multiple AI models, conversations, document intelligence, retrieval, agents, and tools on local infrastructure.
 
-The project is being developed as a prototype with a focus on **local execution, modular architecture, privacy, and extensibility**.
+The project is being developed as an **SIH prototype** demonstrating how a sovereign AI workspace can combine multiple local open-weight models with intelligent model routing and future document/agent capabilities.
 
 ---
 
-## Features
+## Project Status
 
-### Current Foundation
+**Current status: Active Prototype**
 
-* React + Vite frontend
-* FastAPI backend
-* SQLite application database
-* Local Ollama LLM integration
-* Streaming AI responses
-* User authentication
+### Overall Progress
+
+| Component                            | Status      |
+| ------------------------------------ | ----------- |
+| React + Vite frontend                | ✅ Completed |
+| FastAPI backend                      | ✅ Completed |
+| SQLite persistence                   | ✅ Completed |
+| Authentication                       | ✅ Completed |
+| Chat persistence                     | ✅ Completed |
+| Multi-turn conversations             | ✅ Completed |
+| Ollama integration                   | ✅ Completed |
+| Multiple local LLMs                  | ✅ Completed |
+| Streaming responses                  | ✅ Completed |
+| Deterministic LLM Router             | ✅ Completed |
+| Auto model selection                 | ✅ Completed |
+| Routing API                          | ✅ Completed |
+| Routing SSE metadata                 | ✅ Completed |
+| Router UI indicator                  | ✅ Completed |
+| Prototype benchmark/reference scores | ✅ Completed |
+| Model benchmarking infrastructure    | ✅ Completed |
+| Document upload                      | 🔲 Planned  |
+| PDF processing                       | 🔲 Planned  |
+| OCR                                  | 🔲 Planned  |
+| RAG / Qdrant                         | 🔲 Planned  |
+| LangGraph agent                      | 🔲 Planned  |
+| Tool calling                         | 🔲 Planned  |
+| Python sandbox                       | 🔲 Planned  |
+| Word document generation             | 🔲 Planned  |
+| Expanded audit system                | 🔲 Planned  |
+
+---
+
+# 1. What Has Been Built
+
+## 1.1 Local AI Workbench Foundation
+
+The core application is operational as a local web application.
+
+### Frontend
+
+Built using:
+
+* React
+* Vite
+* JavaScript/JSX
+* Custom workspace UI
+
+Current capabilities include:
+
+* Login
+* Signup
 * Protected workspace
-* Persistent chat history
-* Multi-turn conversation memory
-* Chat creation and deletion
-* Local API service layer
-* Basic activity/audit foundation
-* Local-only backend execution
-
-### Planned / In Development
-
-* AI Router with `Auto` model selection
-* Support for multiple local open-weight LLMs
-* Document upload and processing
-* PDF parsing
-* OCR for scanned documents
-* RAG pipeline
-* Qdrant vector database
-* LangGraph agent
-* Tool calling
-* Calculator tool
-* File search tool
-* Web search tool
-* Python execution
-* Docker-based Python sandbox
-* Word document generation
-* Expanded activity/audit logs
+* New chat
+* Persistent conversations
+* Multi-turn conversations
+* Model selection
+* Streaming responses
+* AI response rendering
+* Thinking/reasoning display
 
 ---
 
-## Architecture
+## 1.2 FastAPI Backend
+
+The backend is implemented using FastAPI.
+
+Current backend responsibilities include:
+
+* Authentication APIs
+* Chat APIs
+* Model listing
+* Chat persistence
+* Conversation history
+* Ollama communication
+* Streaming responses
+* Router integration
+
+Backend structure:
 
 ```text
-┌─────────────────────────────────────────────┐
-│                 Frontend                    │
-│                                             │
-│        React + Vite                         │
-│        Workspace UI                         │
-│        Chat Interface                       │
-│        Model Selector                       │
-└─────────────────────┬───────────────────────┘
-                      │
-                      │ HTTP / SSE
-                      ▼
-┌─────────────────────────────────────────────┐
-│                 Backend                     │
-│                                             │
-│        FastAPI                              │
-│        Authentication                       │
-│        Chat API                             │
-│        LLM Integration                      │
-│        AI Router                            │
-│        RAG                                  │
-│        Agent System                         │
-└───────────┬─────────────┬───────────────────┘
-            │             │
-            ▼             ▼
-      ┌──────────┐   ┌──────────────┐
-      │ SQLite   │   │   Ollama     │
-      │ Database │   │ Local LLMs   │
-      └──────────┘   └──────────────┘
-                           │
-                           ▼
-                    Local Open Models
-
-                 Future Components
-                 ──────────────────
-                 Qdrant
-                 LangGraph
-                 Docker Sandbox
-                 OCR / PDF Pipeline
-                 Local Document Store
+backend/
+├── api/
+│   ├── auth.py
+│   └── chat.py
+├── database/
+│   └── database_sql.py
+├── llm/
+│   └── ollama.py
+├── router/
+│   ├── config.py
+│   ├── detector.py
+│   └── router.py
+└── main.py
 ```
 
 ---
 
-## Project Structure
+# 2. Local LLM Integration
+
+The workbench uses **Ollama** for local model execution.
+
+The current prototype supports:
 
 ```text
-.
+qwen3:4b
+gemma3:4b
+qwen2.5-coder:3b
+```
+
+The models run locally through the Ollama API.
+
+The application supports:
+
+* Model discovery
+* Manual model selection
+* Automatic model selection
+* Streaming generation
+* Multi-turn conversation history
+
+The goal is to keep inference local rather than relying on cloud LLM APIs.
+
+---
+
+# 3. LLM Router — Completed
+
+The first major intelligence layer of the workbench is now implemented.
+
+The router is intentionally lightweight and deterministic.
+
+It does **not** use:
+
+* Model training
+* XGBoost
+* Embeddings
+* Vector databases
+* A secondary LLM
+* Cloud APIs
+
+Instead, it analyzes the incoming prompt locally.
+
+### Router flow
+
+```text
+User Prompt
+     │
+     ▼
+Requirement Detection
+     │
+     ├── Task Type
+     ├── Complexity
+     └── Requirements
+     │
+     ▼
+Prototype Benchmark Reference Scores
+     │
+     ▼
+Weighted Model Selection
+     │
+     ▼
+Selected Ollama Model
+     │
+     ▼
+Response
+```
+
+---
+
+## 3.1 Task Detection
+
+The router currently identifies:
+
+```text
+coding
+math
+reasoning
+QA
+general
+```
+
+It also detects requirements such as:
+
+```text
+coding_required
+math_required
+reasoning_required
+retrieval_required
+tool_use_required
+vision_required
+```
+
+Complexity is classified as:
+
+```text
+low
+medium
+high
+```
+
+Complexity is currently used as routing metadata rather than as a benchmark score.
+
+---
+
+## 3.2 Benchmark Reference Routing
+
+The router uses configurable prototype benchmark reference scores.
+
+The scores are stored separately from the routing logic so they can be replaced or updated later.
+
+Conceptually:
+
+```text
+Task
+ │
+ ├── qwen3:4b
+ ├── gemma3:4b
+ └── qwen2.5-coder:3b
+```
+
+For mixed requirements, the router can combine relevant dimensions.
+
+For example:
+
+```text
+coding + reasoning
+        ↓
+coding score: 67%
+reasoning score: 33%
+        ↓
+weighted model score
+        ↓
+selected model
+```
+
+The reference scores are explicitly treated as **prototype/reference data**, not as measurements generated during every user request.
+
+---
+
+# 4. Router Validation
+
+The router has been validated against representative prompts.
+
+### Coding
+
+```text
+Write a Python function to reverse a linked list.
+```
+
+Detected:
+
+```text
+Task: coding
+Complexity: medium
+Requirement: coding
+```
+
+Selected:
+
+```text
+qwen2.5-coder:3b
+```
+
+---
+
+### Mathematics
+
+```text
+Solve 2x + 5 = 17.
+```
+
+Detected:
+
+```text
+Task: math
+Complexity: low
+Requirement: math
+```
+
+Selected:
+
+```text
+qwen3:4b
+```
+
+---
+
+### Reasoning
+
+```text
+Explain why increasing interest rates can reduce inflation.
+```
+
+Detected:
+
+```text
+Task: reasoning
+Complexity: medium
+Requirement: reasoning
+```
+
+Selected:
+
+```text
+qwen3:4b
+```
+
+---
+
+### General QA
+
+```text
+Explain photosynthesis in simple terms.
+```
+
+Detected:
+
+```text
+Task: QA
+Complexity: low
+Requirement: QA
+```
+
+Selected:
+
+```text
+qwen3:4b
+```
+
+---
+
+### Mixed Coding + Reasoning
+
+```text
+Debug this Python algorithm and explain its time complexity.
+```
+
+Detected:
+
+```text
+Task: coding
+Complexity: medium
+Requirements:
+    coding
+    reasoning
+```
+
+The router combines the relevant benchmark reference scores and selects:
+
+```text
+qwen2.5-coder:3b
+```
+
+---
+
+# 5. Auto Model Selection
+
+The frontend now provides an:
+
+```text
+Auto
+```
+
+model option.
+
+When Auto is selected:
+
+```text
+User Prompt
+     ↓
+Router
+     ↓
+Model Selection
+     ↓
+Ollama
+```
+
+The user can still manually select a specific model when required.
+
+This gives the prototype two modes:
+
+### Automatic
+
+```text
+Auto
+ ↓
+Router
+ ↓
+Selected Model
+```
+
+### Manual
+
+```text
+User-selected Model
+ ↓
+Ollama
+```
+
+---
+
+# 6. Routing Transparency
+
+The router exposes its decision instead of silently selecting a model.
+
+The routing result contains:
+
+```text
+Selected model
+Task type
+Complexity
+Detected requirements
+Comparative model scores
+Routing reason
+```
+
+Example:
+
+```text
+Model: qwen2.5-coder:3b
+
+Task: Coding
+Complexity: Medium
+
+Reason:
+Highest benchmark reference score for the
+detected coding requirements.
+```
+
+The routing information is sent to the frontend through the chat's Server-Sent Event stream.
+
+This allows the UI to show how the model was selected.
+
+---
+
+# 7. Routing API
+
+The backend provides a dedicated routing endpoint:
+
+```text
+POST /api/route
+```
+
+This allows routing decisions to be inspected independently from normal chat execution.
+
+The main chat endpoint also integrates routing automatically when:
+
+```text
+model = Auto
+```
+
+The selected model is then passed to the existing Ollama streaming layer.
+
+---
+
+# 8. Benchmarking
+
+The repository contains a separate benchmark component:
+
+```text
+benchmark/
+├── sih_benchmark.py
+└── result/
+    ├── sih_benchmark_results.csv
+    ├── sih_benchmark_results.json
+    └── Sovereign_AI_Workbench_Prototype_Benchmark.pdf
+```
+
+The benchmark system is separate from runtime routing.
+
+Its purpose is to evaluate and document model performance for the prototype.
+
+Runtime routing does not execute the benchmark for every request.
+
+---
+
+# 9. Current Architecture
+
+```text
+                    ┌─────────────────────┐
+                    │     React UI        │
+                    │                     │
+                    │ Chat / Auto / Model │
+                    └──────────┬──────────┘
+                               │
+                             HTTP
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │      FastAPI        │
+                    │                     │
+                    │ Auth / Chat / Route │
+                    └──────────┬──────────┘
+                               │
+                    ┌──────────┴──────────┐
+                    │                     │
+                    ▼                     ▼
+             ┌──────────────┐     ┌──────────────┐
+             │ LLM Router   │     │   SQLite     │
+             │              │     │              │
+             │ Detector     │     │ Users        │
+             │ Score Lookup │     │ Chats        │
+             │ Selection    │     │ Messages     │
+             └──────┬───────┘     └──────────────┘
+                    │
+                    ▼
+             ┌──────────────┐
+             │   Ollama     │
+             │              │
+             │ Qwen3 4B     │
+             │ Gemma3 4B    │
+             │ Qwen Coder   │
+             └──────────────┘
+```
+
+---
+
+# 10. Current Project Structure
+
+```text
+sovereign-ai-workbench/
+│
 ├── backend/
 │   ├── api/
+│   │   ├── __init__.py
 │   │   ├── auth.py
 │   │   └── chat.py
 │   │
 │   ├── database/
+│   │   ├── __init__.py
 │   │   └── database_sql.py
 │   │
 │   ├── llm/
+│   │   ├── __init__.py
 │   │   └── ollama.py
+│   │
+│   ├── router/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── detector.py
+│   │   └── router.py
 │   │
 │   ├── main.py
 │   ├── requirements.txt
 │   └── run_backend.bat
 │
+├── benchmark/
+│   ├── result/
+│   │   ├── sih_benchmark_results.csv
+│   │   ├── sih_benchmark_results.json
+│   │   └── Sovereign_AI_Workbench_Prototype_Benchmark.pdf
+│   │
+│   └── sih_benchmark.py
+│
 ├── public/
+│   ├── favicon.svg
+│   └── icons.svg
 │
 ├── src/
+│   ├── assets/
+│   │   └── hero.png
+│   │
 │   ├── components/
+│   │   ├── AIResponse.jsx
+│   │   ├── Button.jsx
+│   │   ├── Input.jsx
+│   │   ├── Logo.jsx
+│   │   └── ThinkingBlock.jsx
+│   │
 │   ├── context/
 │   │   ├── AuthContext.jsx
 │   │   └── ChatContext.jsx
+│   │
 │   ├── layouts/
 │   │   └── WorkspaceLayout.jsx
+│   │
 │   ├── pages/
-│   └── services/
-│       ├── api.js
-│       ├── auth.js
-│       └── chat.js
+│   │   ├── Login.jsx
+│   │   ├── NewChat.jsx
+│   │   ├── Overview.jsx
+│   │   └── Signup.jsx
+│   │
+│   ├── services/
+│   │   ├── api.js
+│   │   ├── auth.js
+│   │   └── chat.js
+│   │
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
 │
+├── eslint.config.js
+├── index.html
+├── package-lock.json
 ├── package.json
-├── vite.config.js
-└── README.md
+├── pyrightconfig.json
+├── README.md
+└── vite.config.js
 ```
 
 ---
 
-## Requirements
+# 11. Development Progress
 
-Install the following before running the project:
+## Phase 1 — Core Workbench
 
-### Frontend
+**Status: ✅ Completed**
 
-* Node.js
-* npm
-
-### Backend
-
-* Python 3.x
-* pip
-
-### Local LLM
-
-* Ollama
-
-The application currently communicates with Ollama locally.
+* [x] React/Vite frontend
+* [x] FastAPI backend
+* [x] SQLite database
+* [x] Authentication
+* [x] Protected workspace
+* [x] Chat creation
+* [x] Chat persistence
+* [x] Multi-turn conversations
+* [x] Ollama integration
+* [x] Streaming responses
+* [x] Frontend/backend API layer
 
 ---
 
-## Installation
+## Phase 2 — Multi-Model AI Router
 
-Clone the repository:
+**Status: ✅ Completed**
 
-```bash
-git clone https://github.com/Dhananjay-52/CodeFreaks.git
-cd CodeFreaks
-```
-
-### Install frontend dependencies
-
-```bash
-npm install
-```
-
-### Install backend dependencies
-
-```bash
-cd backend
-py -m pip install -r requirements.txt
-```
-
-Return to the project root:
-
-```bash
-cd ..
-```
+* [x] Multiple local Ollama models
+* [x] Deterministic task detection
+* [x] Requirement detection
+* [x] Complexity detection
+* [x] Prototype benchmark reference scores
+* [x] Weighted routing
+* [x] Auto model selection
+* [x] Manual model override
+* [x] Routing API
+* [x] Routing SSE events
+* [x] Frontend routing indicator
+* [x] Routing fallbacks
+* [x] Representative prompt validation
 
 ---
 
-## Running the Project
+## Phase 3 — Documents & RAG
 
-The frontend and backend should be run in **separate terminals**.
+**Status: 🔲 Planned**
 
-### 1. Start the Backend
+* [ ] Document upload
+* [ ] PDF extraction
+* [ ] OCR
+* [ ] Text chunking
+* [ ] Embeddings
+* [ ] Qdrant
+* [ ] Semantic retrieval
+* [ ] Context injection
 
-From the project root:
+---
+
+## Phase 4 — Autonomous Agent
+
+**Status: 🔲 Planned**
+
+* [ ] LangGraph integration
+* [ ] Agent state
+* [ ] Tool execution
+* [ ] Tool result handling
+* [ ] Agent streaming events
+
+---
+
+## Phase 5 — Tools & Sandbox
+
+**Status: 🔲 Planned**
+
+* [ ] Calculator
+* [ ] File search
+* [ ] Web search
+* [ ] Python execution
+* [ ] Docker-based Python sandbox
+
+---
+
+## Phase 6 — Workbench Integration
+
+**Status: 🔲 Planned**
+
+* [ ] Unified AI workflow
+* [ ] Router + RAG integration
+* [ ] Document-aware conversations
+* [ ] Agent + tools integration
+* [ ] Word document generation
+* [ ] Expanded audit logs
+* [ ] Final prototype UI
+
+---
+
+# 12. Design Principles
+
+### Local First
+
+The core AI inference is designed to run locally through Ollama.
+
+### Privacy
+
+Conversations and application data are intended to remain within the local environment unless a future feature explicitly requires an external service.
+
+### Modular
+
+The system separates:
+
+```text
+Frontend
+Backend
+Database
+LLM Integration
+Router
+Benchmarking
+RAG
+Agents
+Tools
+Sandbox
+```
+
+This allows individual components to evolve independently.
+
+### Prototype First
+
+The project is intentionally focused on demonstrating the core architecture before introducing unnecessary infrastructure complexity.
+
+---
+
+# 13. Running the Project
+
+## Backend
 
 ```bash
 cd backend
 py -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The backend will be available at:
+Backend:
 
 ```text
 http://127.0.0.1:8000
@@ -209,279 +759,49 @@ FastAPI documentation:
 http://127.0.0.1:8000/docs
 ```
 
----
+## Frontend
 
-### 2. Start the Frontend
-
-Open another terminal in the project root:
+From the project root:
 
 ```bash
 npm.cmd run dev
 ```
 
-Vite will provide the local development URL, normally:
+The frontend is normally available at:
 
 ```text
 http://localhost:5173
 ```
 
-Open that URL in your browser.
-
 ---
 
-## Ollama Setup
+# 14. Ollama Setup
 
-The workbench uses Ollama for local LLM execution.
-
-Make sure Ollama is installed and running before using the chat functionality.
-
-Check that Ollama is available:
+Verify Ollama:
 
 ```bash
 ollama list
 ```
 
-The backend communicates with the local Ollama service.
-
-The current implementation supports streaming responses from Ollama and maintains conversation history through the application database.
-
-### Example model
-
-The original prototype uses:
+Required prototype models:
 
 ```text
 qwen3:4b
+gemma3:4b
+qwen2.5-coder:3b
 ```
 
-Additional local models can be installed as required:
+Install a missing model:
 
 ```bash
 ollama pull <model-name>
 ```
 
-The upcoming AI Router will allow the user to select a specific model or use:
-
-```text
-Auto
-```
-
-to let the router select an appropriate local model.
-
 ---
 
-## Database
+# 15. Verification
 
-The application uses **SQLite** for application persistence.
-
-The database stores application-level data such as:
-
-* Users
-* Chats
-* Messages
-* Audit/activity information
-
-SQLite keeps the prototype simple and allows the workbench to operate locally without requiring a separate database server.
-
----
-
-## Chat Flow
-
-The current chat flow is approximately:
-
-```text
-User
-  │
-  ▼
-React Chat UI
-  │
-  ▼
-FastAPI /api/chat
-  │
-  ▼
-Conversation History
-  │
-  ▼
-Ollama
-  │
-  ▼
-Streaming Response
-  │
-  ▼
-React UI
-```
-
-Follow-up messages are associated with the same chat and conversation history.
-
----
-
-## Development Roadmap
-
-### Phase 1 — Foundation
-
-* [x] React/Vite frontend
-* [x] FastAPI backend
-* [x] SQLite persistence
-* [x] Authentication
-* [x] Chat persistence
-* [x] Multi-turn conversation support
-* [x] Ollama integration
-* [x] Streaming responses
-* [x] Frontend API service layer
-
-### Phase 2 — LLM Router
-
-* [ ] LLM abstraction layer
-* [ ] Multiple local Ollama models
-* [ ] Model capability definitions
-* [ ] `Auto` routing option
-* [ ] Rule-based model selection
-
-### Phase 3 — Documents & RAG
-
-* [ ] Document upload
-* [ ] PDF extraction
-* [ ] OCR
-* [ ] Text chunking
-* [ ] Embeddings
-* [ ] Qdrant integration
-* [ ] Semantic retrieval
-* [ ] Context injection into conversations
-
-### Phase 4 — Autonomous Agent
-
-* [ ] LangGraph agent
-* [ ] Agent state
-* [ ] Tool execution
-* [ ] Tool result handling
-* [ ] Agent streaming events
-
-### Phase 5 — Tools & Sandbox
-
-* [ ] Calculator
-* [ ] File search
-* [ ] Web search
-* [ ] Python execution
-* [ ] Docker Python sandbox
-
-### Phase 6 — Workbench Integration
-
-* [ ] Unified AI workflow
-* [ ] RAG + agent integration
-* [ ] Document-aware conversations
-* [ ] Word document generation
-* [ ] Improved audit logs
-* [ ] Final prototype UI
-
----
-
-## Design Principles
-
-### Local First
-
-The system is designed to execute locally wherever practical.
-
-### Privacy
-
-User conversations and application data are intended to remain within the local environment unless a future feature explicitly requires an external service.
-
-### Modular
-
-LLM providers, retrieval, agents, tools, and sandbox execution are separated into independent modules so they can evolve without rewriting the entire application.
-
-### Prototype First
-
-The project intentionally avoids unnecessary enterprise infrastructure.
-
-The goal is to demonstrate the core capabilities of a sovereign AI workbench before introducing additional complexity.
-
----
-
-## Development Workflow
-
-The project is divided into modular workstreams.
-
-Example branches:
-
-```text
-feature/llm-router
-feature/rag-documents
-feature/agent-tools
-```
-
-Recommended integration order:
-
-```text
-LLM + Router
-      ↓
-Documents + RAG
-      ↓
-Agent + Tools + Sandbox
-      ↓
-UI Integration
-      ↓
-End-to-End Testing
-```
-
----
-
-## Troubleshooting
-
-### Backend does not start
-
-Verify Python:
-
-```bash
-py --version
-```
-
-Install dependencies:
-
-```bash
-cd backend
-py -m pip install -r requirements.txt
-```
-
-Then start the backend again:
-
-```bash
-py -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
-```
-
-### Frontend does not start
-
-Verify Node.js:
-
-```bash
-node --version
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Then run:
-
-```bash
-npm.cmd run dev
-```
-
-### Ollama is unavailable
-
-Check Ollama:
-
-```bash
-ollama list
-```
-
-Make sure the Ollama service is running and that at least one model is installed.
-
----
-
-## Verification
-
-Before committing changes, verify:
+Before committing changes:
 
 ### Frontend
 
@@ -496,38 +816,150 @@ cd backend
 py -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Then verify the API through:
+### Router
+
+Verify:
 
 ```text
-http://127.0.0.1:8000/docs
+POST /api/route
 ```
+
+Test representative prompts for:
+
+* Coding
+* Math
+* Reasoning
+* General QA
+* Mixed coding + reasoning
 
 ### End-to-End
 
-Verify the following manually:
+Verify:
 
 1. Open the frontend.
-2. Create an account.
-3. Log in.
-4. Create a new chat.
-5. Send a message.
-6. Confirm the response streams correctly.
-7. Send a follow-up message.
-8. Confirm the conversation remains in the same chat.
-9. Create another chat.
-10. Confirm chat history persists.
+2. Log in.
+3. Create a chat.
+4. Select `Auto`.
+5. Send a prompt.
+6. Confirm the router selects a model.
+7. Confirm the routing indicator appears.
+8. Confirm the response streams from Ollama.
+9. Send a follow-up message.
+10. Confirm conversation history persists.
+11. Manually select a model.
+12. Confirm manual model selection overrides Auto routing.
 
 ---
 
-## License
+# 16. Current Milestone
 
-This project is currently a prototype. Add the project's intended license here before public distribution.
+### Milestone 1 — Local AI Foundation
+
+**Completed**
+
+The application can run locally with authentication, persistent conversations, streaming responses, and Ollama integration.
+
+### Milestone 2 — Intelligent Model Routing
+
+**Completed**
+
+The application can analyze incoming prompts and automatically select among multiple local LLMs using deterministic requirement detection and configurable benchmark reference scores.
+
+### Milestone 3 — Document Intelligence
+
+**Next**
+
+The next major development stage is the document and RAG pipeline.
+
+Planned flow:
+
+```text
+Document
+   ↓
+PDF / OCR Processing
+   ↓
+Text Extraction
+   ↓
+Chunking
+   ↓
+Embeddings
+   ↓
+Qdrant
+   ↓
+Retrieval
+   ↓
+LLM Router
+   ↓
+Local Model
+```
 
 ---
 
-## Status
+# 17. Roadmap
 
-**Project status: Active Prototype**
+```text
+                    CURRENT
+                       │
+                       ▼
+             ┌──────────────────┐
+             │ Local AI          │
+             │ Workbench         │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ Multi-Model      │
+             │ AI Router        │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ Documents + RAG  │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ Agent + Tools    │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ Sandbox +        │
+             │ Workbench Tools  │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ Integrated       │
+             │ Sovereign AI     │
+             │ Workbench        │
+             └──────────────────┘
+```
 
-The core local AI workbench foundation is operational. The next major development stage is the integration of the **multi-model AI Router, document/RAG pipeline, LangGraph agent, tools, and sandbox execution**.
- 
+---
+
+## Current Summary
+
+The prototype has progressed from a basic local chat application to a **multi-model local AI workbench with an operational deterministic LLM Router**.
+
+The currently completed core is:
+
+```text
+React/Vite
+    +
+FastAPI
+    +
+SQLite
+    +
+Ollama
+    +
+3 Local LLMs
+    +
+Deterministic AI Router
+    +
+Auto Model Selection
+    +
+Streaming Chat
+```
+
+The next major focus is **document intelligence and RAG**, followed by autonomous agents, tools, sandbox execution, and full workbench integration.
