@@ -206,8 +206,7 @@ def append_message(
             (chat_id, role, content, thinking or "", think_duration or 0, now),
         )
         conn.commit()
-        # pyrefly: ignore [bad-return]
-        return cursor.lastrowid
+        return cursor.lastrowid # type: ignore
     finally:
         conn.close()
 

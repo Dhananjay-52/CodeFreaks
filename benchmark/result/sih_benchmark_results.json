@@ -1,0 +1,162 @@
+{
+  "benchmark": {
+    "name": "SIH Sovereign AI Workbench local LLM benchmark",
+    "timestamp": "2026-09-27T22:57:05.840524+05:30",
+    "prompt": "You are testing a local enterprise AI assistant.\nExplain in 120-160 words why keeping an AI model on-premise can be useful for confidential industrial documents.\nMention data control, local inference, auditability, and the trade-off of local hardware resources.\nDo not use markdown tables.",
+    "runs_per_model": 3
+  },
+  "system": {
+    "timestamp": "2026-09-27T22:56:22.539327+05:30",
+    "hostname": "DESKTOP-QHIO2SS",
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.14.3",
+    "cpu": "AMD64 Family 25 Model 33 Stepping 2, AuthenticAMD",
+    "cpu_count_logical": 16,
+    "ram_total_gb": null
+  },
+  "gpu": {
+    "available": true,
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 5050",
+        "memory_total_mb": "8151",
+        "memory_used_mb": "6888",
+        "driver_version": "591.86",
+        "temperature_c": "42",
+        "utilization_gpu_pct": "0",
+        "power_draw_w": "11.09"
+      }
+    ],
+    "cuda_version_reported": "13.1"
+  },
+  "ollama_version": "0.34.4",
+  "installed_models": [
+    "qwen3:4b",
+    "gemma3:4b",
+    "qwen2.5-coder:3b"
+  ],
+  "selected_models": [
+    "qwen3:4b",
+    "qwen2.5-coder:3b",
+    "gemma3:4b"
+  ],
+  "results": [
+    {
+      "model": "qwen3:4b",
+      "run": 1,
+      "time_to_first_token_sec": 8.9311,
+      "total_response_latency_sec": 10.7346,
+      "generated_tokens": 578,
+      "generation_speed_tokens_sec": 95.65,
+      "ollama_eval_duration_sec": 6.0428,
+      "gpu_memory_delta_mb": 770.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 1070
+    },
+    {
+      "model": "qwen3:4b",
+      "run": 2,
+      "time_to_first_token_sec": 3.9132,
+      "total_response_latency_sec": 5.691,
+      "generated_tokens": 538,
+      "generation_speed_tokens_sec": 95.909,
+      "ollama_eval_duration_sec": 5.6095,
+      "gpu_memory_delta_mb": 0.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 1075
+    },
+    {
+      "model": "qwen3:4b",
+      "run": 3,
+      "time_to_first_token_sec": 3.9112,
+      "total_response_latency_sec": 5.6888,
+      "generated_tokens": 538,
+      "generation_speed_tokens_sec": 95.915,
+      "ollama_eval_duration_sec": 5.6091,
+      "gpu_memory_delta_mb": 0.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 1075
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "run": 1,
+      "time_to_first_token_sec": 7.7268,
+      "total_response_latency_sec": 9.9038,
+      "generated_tokens": 273,
+      "generation_speed_tokens_sec": 125.496,
+      "ollama_eval_duration_sec": 2.1754,
+      "gpu_memory_delta_mb": -966.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 1587
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "run": 2,
+      "time_to_first_token_sec": 0.0249,
+      "total_response_latency_sec": 2.1048,
+      "generated_tokens": 262,
+      "generation_speed_tokens_sec": 126.067,
+      "ollama_eval_duration_sec": 2.0783,
+      "gpu_memory_delta_mb": 0.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 1460
+    },
+    {
+      "model": "qwen2.5-coder:3b",
+      "run": 3,
+      "time_to_first_token_sec": 0.0333,
+      "total_response_latency_sec": 2.1147,
+      "generated_tokens": 262,
+      "generation_speed_tokens_sec": 125.98,
+      "ollama_eval_duration_sec": 2.0797,
+      "gpu_memory_delta_mb": 9.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 1460
+    },
+    {
+      "model": "gemma3:4b",
+      "run": 1,
+      "time_to_first_token_sec": 0.0472,
+      "total_response_latency_sec": 1.6952,
+      "generated_tokens": 159,
+      "generation_speed_tokens_sec": 96.581,
+      "ollama_eval_duration_sec": 1.6463,
+      "gpu_memory_delta_mb": 0.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 964
+    },
+    {
+      "model": "gemma3:4b",
+      "run": 2,
+      "time_to_first_token_sec": 0.0437,
+      "total_response_latency_sec": 1.6903,
+      "generated_tokens": 159,
+      "generation_speed_tokens_sec": 96.655,
+      "ollama_eval_duration_sec": 1.645,
+      "gpu_memory_delta_mb": 0.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 964
+    },
+    {
+      "model": "gemma3:4b",
+      "run": 3,
+      "time_to_first_token_sec": 0.0486,
+      "total_response_latency_sec": 1.696,
+      "generated_tokens": 159,
+      "generation_speed_tokens_sec": 96.622,
+      "ollama_eval_duration_sec": 1.6456,
+      "gpu_memory_delta_mb": 0.0,
+      "system_ram_before_gb": null,
+      "system_ram_after_gb": null,
+      "output_chars": 964
+    }
+  ]
+}

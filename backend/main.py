@@ -58,6 +58,7 @@ def health_check():
         "service": "Sovereign Autonomous AI Workbench",
         "database": "SQLite (users, chats, messages)",
         "llm": "Ollama (local)",
+        "router": "Deterministic Benchmark Reference Router",
     }
 
 

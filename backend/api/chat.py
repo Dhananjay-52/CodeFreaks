@@ -30,6 +30,9 @@ from database.database_sql import (
     touch_chat,
 )
 from llm.ollama import DEFAULT_MODEL, get_available_models, stream_chat
+from router.router import LLMRouter
+
+llm_router = LLMRouter()
 
 router = APIRouter(tags=["chat"])
 
@@ -38,13 +41,18 @@ router = APIRouter(tags=["chat"])
 # Request models
 # ---------------------------------------------------------------------------
 
+class RouteRequest(BaseModel):
+    prompt: str
+
+
 class ChatRequest(BaseModel):
     message: str
-    model: Optional[str] = DEFAULT_MODEL
+    model: Optional[str] = "Auto"
     system_prompt: Optional[str] = None
     stream: Optional[bool] = True
     chat_id: Optional[str] = None
     user_id: Optional[Any] = "default"
+    images: Optional[List[str]] = None
 
 
 class SaveChatRequest(BaseModel):
@@ -57,14 +65,27 @@ class SaveChatRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Model listing
+# Model listing & Routing
 # ---------------------------------------------------------------------------
 
 @router.get("/api/models")
 def list_models():
-    """Return locally installed Ollama models."""
+    """Return locally installed Ollama models with Auto as default."""
     models = get_available_models()
-    return {"models": models or [DEFAULT_MODEL]}
+    model_list = models or [DEFAULT_MODEL]
+    if "Auto" not in model_list:
+        model_list = ["Auto"] + [m for m in model_list if m != "Auto"]
+    return {"models": model_list, "default": "Auto"}
+
+
+@router.post("/api/route")
+def route_prompt(req: RouteRequest):
+    """
+    Lightweight deterministic LLM routing endpoint.
+    Returns task detection, complexity, active requirements, benchmark scores,
+    selected model, and routing reason.
+    """
+    return llm_router.route(req.prompt)
 
 
 # ---------------------------------------------------------------------------
@@ -119,21 +140,34 @@ def chat_stream(request: ChatRequest):
     Stream a chat response.
 
     Flow:
+      0. Deterministic LLM routing (selects model if Auto is requested).
       1. Resolve or create chat_id.
       2. Ensure chat row exists in SQLite.
       3. Persist the incoming user message.
       4. Load full conversation history.
-      5. Call Ollama /api/chat with history → stream SSE to client.
-      6. Persist the completed assistant message (inside the generator).
-      7. Touch chat updated_at timestamp.
+      5. Emit routing SSE event so the client shows the routing indicator.
+      6. Call Ollama /api/chat with history → stream SSE to client.
+      7. Persist the completed assistant message (inside the generator).
+      8. Touch chat updated_at timestamp.
     """
     chat_id = request.chat_id or f"chat_{int(datetime.datetime.now().timestamp() * 1000)}"
     user_id = str(request.user_id or "default")
-    model = request.model or DEFAULT_MODEL
     user_message = request.message.strip()
 
     if not user_message:
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
+
+    # 0. Deterministic LLM Routing evaluation
+    routing_result = llm_router.route(
+        user_message,
+        has_image=bool(request.images),
+    )
+    requested_model = request.model or "Auto"
+
+    if requested_model.lower() in ("auto", "default", "none"):
+        model = routing_result["selected_model"]
+    else:
+        model = requested_model
 
     # 1 & 2. Ensure chat row exists (safe to call multiple times)
     ensure_chat(
@@ -151,12 +185,20 @@ def chat_stream(request: ChatRequest):
     ollama_messages = [{"role": m["role"], "content": m["content"]} for m in history]
 
     def generate():
+        # Emit routing trace event so the client displays the routing indicator
+        yield f"data: {json.dumps({'type': 'routing', 'data': routing_result})}\n\n"
+
         accumulated_content = ""
         accumulated_thinking = ""
         think_start = datetime.datetime.now().timestamp()
         think_end_delta = None
 
-        for chunk_str in stream_chat(ollama_messages, model=model, system_prompt=request.system_prompt):
+        for chunk_str in stream_chat(
+            ollama_messages,
+            model=model,
+            system_prompt=request.system_prompt,
+            images=request.images,
+        ):
             yield chunk_str
 
             # Parse the emitted SSE to accumulate content for persistence
@@ -172,7 +214,7 @@ def chat_stream(request: ChatRequest):
                         think_end_delta = datetime.datetime.now().timestamp() - think_start
                     accumulated_content += payload.get("content", "")
                 elif ptype == "done":
-                    # 6. Persist the completed assistant response
+                    # 7. Persist the completed assistant response
                     append_message(
                         chat_id=chat_id,
                         role="assistant",
@@ -180,7 +222,7 @@ def chat_stream(request: ChatRequest):
                         thinking=accumulated_thinking,
                         think_duration=round(think_end_delta or 0, 1),
                     )
-                    # 7. Update the chat's updated_at timestamp
+                    # 8. Update the chat's updated_at timestamp
                     touch_chat(chat_id)
             except Exception:
                 pass  # Never crash the stream due to a parse error

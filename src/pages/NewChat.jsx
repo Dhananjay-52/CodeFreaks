@@ -22,8 +22,9 @@ function NewChat() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [knowledgeEnabled, setKnowledgeEnabled] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("qwen3:4b");
-  const [availableModels, setAvailableModels] = useState(["qwen3:4b"]);
+  const [selectedModel, setSelectedModel] = useState("Auto");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [availableModels, setAvailableModels] = useState(["Auto", "qwen3:4b"]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
@@ -181,6 +182,7 @@ function NewChat() {
       timestamp: new Date().toISOString(),
     };
 
+    
     const assistantId = Date.now() + 1;
     const assistantMessage = {
       id: assistantId,
@@ -195,6 +197,7 @@ function NewChat() {
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setMessage("");
+    
     setIsGenerating(true);
     setBackendError(null);
 
@@ -205,6 +208,10 @@ function NewChat() {
     let thinkEndTime = null;
 
     try {
+      const imageBase64 = selectedImage
+      ? await fileToBase64(selectedImage)
+      : null;
+
       const response = await fetch(getChatStreamUrl(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -214,9 +221,12 @@ function NewChat() {
           stream: true,
           chat_id: chatId,
           user_id: userId,
+          images: imageBase64 ? [imageBase64] : null,
         }),
         signal: controller.signal,
       });
+
+      setSelectedImage(null);
 
       if (!response.ok) {
         throw new Error(`Server returned HTTP ${response.status}`);
@@ -241,12 +251,18 @@ function NewChat() {
           if (!trimmed || !trimmed.startsWith("data:")) continue;
 
           const jsonStr = trimmed.replace(/^data:\s*/, "");
-          if (!jsonStr) continue;
-
           try {
             const data = JSON.parse(jsonStr);
 
-            if (data.type === "thinking") {
+            if (data.type === "routing") {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantId
+                    ? { ...msg, routing: data.data }
+                    : msg
+                )
+              );
+            } else if (data.type === "thinking") {
               accumulatedThinking += data.content;
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -336,6 +352,24 @@ function NewChat() {
     }
   };
 
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const result = reader.result;
+
+        // Remove "data:image/...;base64," prefix
+        const base64 = result.split(",")[1];
+
+        resolve(base64);
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -394,6 +428,8 @@ function NewChat() {
               message={message}
               setMessage={setMessage}
               onSend={sendMessage}
+              selectedImage={selectedImage}
+              setSelectedImage={setSelectedImage} 
               onKeyDown={handleKeyDown}
               knowledgeEnabled={knowledgeEnabled}
               setKnowledgeEnabled={setKnowledgeEnabled}
@@ -446,6 +482,7 @@ function NewChat() {
                         isThinking={item.isThinking}
                         isGenerating={item.isGenerating}
                         thinkDuration={item.thinkDuration}
+                        routing={item.routing}
                       />
                     )}
                   </div>
@@ -467,6 +504,8 @@ function NewChat() {
                 message={message}
                 setMessage={setMessage}
                 onSend={sendMessage}
+                selectedImage={selectedImage}
+                setSelectedImage={setSelectedImage}
                 onKeyDown={handleKeyDown}
                 knowledgeEnabled={knowledgeEnabled}
                 setKnowledgeEnabled={setKnowledgeEnabled}
@@ -504,6 +543,8 @@ function ChatComposer({
   message,
   setMessage,
   onSend,
+  selectedImage,
+  setSelectedImage,
   onKeyDown,
   knowledgeEnabled,
   setKnowledgeEnabled,
@@ -515,8 +556,10 @@ function ChatComposer({
   availableModels,
 }) {
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
+  const dropdownRef = useRef(null);
+  const fileInputRef = useRef(null);
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -529,6 +572,28 @@ function ChatComposer({
 
   return (
     <div className="rounded-2xl border border-[#293440] bg-[#0E141A] p-3 shadow-2xl shadow-black/20 transition focus-within:border-[#3A4654]">
+      
+      {selectedImage && imagePreview && (
+          <div className="mb-2 flex items-center gap-2">
+            <img
+              src={imagePreview}
+              alt="Selected"
+              className="h-16 w-16 rounded-lg object-cover border border-[#293440]"
+            />
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedImage(null);
+                setImagePreview(null);
+              }}
+              className="text-xs text-gray-500 hover:text-gray-200"
+            >
+              Remove
+            </button>
+          </div>
+        )}
+
       <textarea
         ref={textareaRef}
         value={message}
@@ -542,12 +607,35 @@ function ChatComposer({
       <div className="mt-2 flex items-center justify-between">
         <div className="flex items-center gap-1">
           <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition hover:bg-[#151C24] hover:text-gray-200"
-          >
-            <Paperclip size={14} />
-            Attach
-          </button>
+  type="button"
+  onClick={() => fileInputRef.current?.click()}
+  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition hover:bg-[#151C24] hover:text-gray-200"
+>
+  <Paperclip size={14} />
+  Attach
+</button>
+
+<input
+  ref={fileInputRef}
+  type="file"
+  accept="image/*"
+  className="hidden"
+  onChange={(event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setSelectedImage(file);
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setImagePreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  }}
+/>
 
           <button
             type="button"
@@ -625,9 +713,9 @@ function ChatComposer({
             <button
               type="button"
               onClick={onSend}
-              disabled={!message.trim()}
+              disabled={!message.trim() && !selectedImage}
               className={`flex h-8 w-8 items-center justify-center rounded-xl transition ${
-                message.trim()
+                message.trim() || selectedImage
                   ? "bg-white text-black hover:bg-gray-200 active:scale-95"
                   : "bg-[#202934] text-gray-600"
               }`}

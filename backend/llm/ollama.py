@@ -37,6 +37,7 @@ def stream_chat(
     messages: List[Dict[str, Any]],
     model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
+    images: Optional[List[str]] = None,
 ):
     """
     Stream a chat response from Ollama using /api/chat with full message history.
@@ -54,12 +55,23 @@ def stream_chat(
         ollama_messages.append({"role": "system", "content": system_prompt})
     ollama_messages.extend(messages)
 
+    # Attach images to the latest user message for multimodal models
+    if images:
+        for message in reversed(ollama_messages):
+            if message.get("role") == "user":
+                message["images"] = images
+                break
+
+    # Only request native thinking tokens for models that support it (e.g. qwen3, deepseek-r1)
+    supports_native_thinking = any(k in (model or "").lower() for k in ("qwen3", "deepseek-r1"))
+
     payload: Dict[str, Any] = {
         "model": model or DEFAULT_MODEL,
         "messages": ollama_messages,
         "stream": True,
-        "think": True,  # Request native thinking tokens (supported by qwen3, etc.)
     }
+    if supports_native_thinking:
+        payload["think"] = True
 
     try:
         response = requests.post(
@@ -69,8 +81,22 @@ def stream_chat(
             timeout=120,
         )
 
+        # Resilient fallback: if Ollama rejects the think parameter, retry without it
+        if response.status_code == 400 and "think" in payload:
+            payload.pop("think")
+            response = requests.post(
+                f"{OLLAMA_BASE_URL}/api/chat",
+                json=payload,
+                stream=True,
+                timeout=120,
+            )
+
         if response.status_code != 200:
-            err_msg = f"Ollama error: HTTP {response.status_code}"
+            try:
+                err_detail = response.json().get("error", response.text)
+            except Exception:
+                err_detail = f"HTTP {response.status_code}"
+            err_msg = f"Ollama error: {err_detail}"
             yield f"data: {json.dumps({'type': 'error', 'error': err_msg})}\n\n"
             return
 

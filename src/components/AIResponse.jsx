@@ -70,15 +70,78 @@ function CodeBlock({ inline, className, children, ...props }) {
   );
 }
 
+function RoutingIndicator({ routing }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!routing) return null;
+
+  const { selected_model, task_type, complexity, reason, scores } = routing;
+
+  return (
+    <div className="mb-3 rounded-xl border border-[#202d3d] bg-[#0c131a] px-3.5 py-2.5 text-xs text-gray-300 shadow-sm transition">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-gray-400 font-medium">Model selected:</span>
+          <span className="font-mono font-semibold text-cyan-300">{selected_model}</span>
+          <span className="text-gray-600">·</span>
+          <span className="text-gray-400 font-medium">Task:</span>
+          <span className="capitalize font-semibold text-gray-200">{task_type}</span>
+          {complexity && (
+            <span className="rounded bg-[#172332] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-gray-400">
+              {complexity}
+            </span>
+          )}
+        </div>
+        {scores && Object.keys(scores).length > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="text-[11px] text-gray-400 transition hover:text-cyan-300"
+          >
+            {expanded ? "Hide scores" : "View benchmark scores"}
+          </button>
+        )}
+      </div>
+
+      <div className="mt-1 text-[11px] text-gray-400 leading-relaxed">
+        <span className="font-medium text-gray-500">Reason: </span>
+        {reason}
+      </div>
+
+      {expanded && scores && (
+        <div className="mt-2.5 pt-2 border-t border-[#1a2533] flex flex-wrap gap-2 text-[11px] font-mono">
+          <span className="text-gray-500 text-[10px] uppercase tracking-wider self-center">Ref Scores:</span>
+          {Object.entries(scores).map(([model, score]) => (
+            <span
+              key={model}
+              className={`px-2 py-0.5 rounded border ${
+                model === selected_model
+                  ? "bg-cyan-950/40 text-cyan-300 border-cyan-700/50 font-semibold"
+                  : "bg-[#111822] text-gray-400 border-[#1e2938]"
+              }`}
+            >
+              {model}: {score}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AIResponse({
   content = "",
   thinking = "",
   isThinking = false,
   isGenerating = false,
   thinkDuration = 0,
+  routing = null,
 }) {
   return (
     <div className="ai-response-container w-full">
+      {/* Real-time LLM Routing Indicator */}
+      {routing && <RoutingIndicator routing={routing} />}
+
       {/* Real-time Thinking Block */}
       {(thinking || isThinking) && (
         <ThinkingBlock

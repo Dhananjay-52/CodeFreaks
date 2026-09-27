@@ -1,0 +1,10 @@
+model,run,time_to_first_token_sec,total_response_latency_sec,generated_tokens,generation_speed_tokens_sec,ollama_eval_duration_sec,gpu_memory_delta_mb,system_ram_before_gb,system_ram_after_gb,output_chars,error
+qwen3:4b,1,8.9311,10.7346,578,95.65,6.0428,770.0,,,1070,
+qwen3:4b,2,3.9132,5.691,538,95.909,5.6095,0.0,,,1075,
+qwen3:4b,3,3.9112,5.6888,538,95.915,5.6091,0.0,,,1075,
+qwen2.5-coder:3b,1,7.7268,9.9038,273,125.496,2.1754,-966.0,,,1587,
+qwen2.5-coder:3b,2,0.0249,2.1048,262,126.067,2.0783,0.0,,,1460,
+qwen2.5-coder:3b,3,0.0333,2.1147,262,125.98,2.0797,9.0,,,1460,
+gemma3:4b,1,0.0472,1.6952,159,96.581,1.6463,0.0,,,964,
+gemma3:4b,2,0.0437,1.6903,159,96.655,1.645,0.0,,,964,
+gemma3:4b,3,0.0486,1.696,159,96.622,1.6456,0.0,,,964,
